@@ -1,4 +1,4 @@
-name: Compilar APK Starsnin
+name: Gerador Direto de APK Starsnin
 
 on:
   push:
@@ -6,12 +6,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
 
     steps:
     - name: Baixar o Repositorio
       uses: actions/checkout@v4
+
+    - name: Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
 
     - name: Configurar Java JDK 17
       uses: actions/setup-java@v4
@@ -22,27 +27,23 @@ jobs:
     - name: Configurar Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Dar Permissao ao Gradle e Compilar
+    - name: Instalar Capacitor para Gerar o APK
       run: |
-        if [ -f "gradlew" ]; then
-          chmod +x gradlew
-          ./gradlew assembleDebug
-        elif [ -d "android" ]; then
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
-        else
-          echo "Nenhum wrapper do Gradle encontrado na raiz ou na pasta android."
-          exit 1
-        fi
+        npm init -y
+        npm install @capacitor/core @capacitor/cli @capacitor/android
+        npx cap init StarsninBrowser com.starsnin.browser --web-dir .
+        npx cap add android
+
+    - name: Compilar o APK via Gradle
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleDebug
 
     - name: Salvar o APK Gerado
       uses: actions/upload-artifact@v4
       with:
         name: starsnin-apk-final
-        path: |
-          app/build/outputs/apk/debug/*.apk
-          android/app/build/outputs/apk/debug/*.apk
-          **/*.apk
+        path: android/app/build/outputs/apk/debug/*.apk
         if-no-files-found: error
         
