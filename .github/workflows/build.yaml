@@ -11,22 +11,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Clonar Repositório
+    - name: Checkout do Repositorio
       uses: actions/checkout@v4
 
-    - name: Verificar Arquivos e Estrutura
-      run: |
-        echo "Verificando estrutura do navegador e o link do Starsnin..."
-        ls -la
-
-    - name: Compactar Artefatos do Projeto
+    - name: Gerar Artefato sem Modificar o Codigo
       uses: actions/upload-artifact@v4
       with:
-        name: starsnin-browser-files
-        path: |
-          *.html
-          *.css
-          *.js
-          assets/
-          *.png
-          
+        name: starsnin-browser-artifact
+        path: .
+        if-no-files-found: error
+        
