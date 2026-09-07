@@ -27,12 +27,13 @@ jobs:
     - name: Configurar Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Instalar Capacitor para Gerar o APK
+    - name: Instalar e Configurar Capacitor
       run: |
         npm init -y
         npm install @capacitor/core @capacitor/cli @capacitor/android
         npx cap init StarsninBrowser com.starsnin.browser --web-dir .
         npx cap add android
+        npx cap sync android
 
     - name: Compilar o APK via Gradle
       run: |
