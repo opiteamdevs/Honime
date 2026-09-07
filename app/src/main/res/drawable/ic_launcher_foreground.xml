@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Starburst emblem for Starsnin Browser -->
+    <!-- Central 4-point star with orbiting ring -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M54,26 L58,46 L78,54 L58,62 L54,82 L50,62 L30,54 L50,46 Z" />
+    <path
+        android:fillColor="#818CF8"
+        android:pathData="M54,34 L56.5,49 L71.5,54 L56.5,59 L54,74 L51.5,59 L36.5,54 L51.5,49 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,44 L55.5,51.5 L63,54 L55.5,56.5 L54,64 L52.5,56.5 L45,54 L52.5,51.5 Z" />
+    <!-- Orbiting dots -->
+    <path
+        android:fillColor="#F472B6"
+        android:pathData="M38,36 A3,3 0 1,1 38,36.01 Z" />
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M70,72 A3,3 0 1,1 70,72.01 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M72,36 A2,2 0 1,1 72,36.01 Z" />
+</vector>

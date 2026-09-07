@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Starsnin Browser - Motor Próprio & Abas Verticais</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- LATERAL VERTICAL TABS SIDEBAR -->
+    <aside id="sidebar">
+      <div class="sidebar-header" id="sidebar-logo-header" title="Starsnin Oficial">
+        <img class="official-logo" src="https://starsnin.vercel.app/starsninlogo.png" alt="Logo Oficial Starsnin" />
+        <div class="brand-text">
+          <span class="brand-title">Starsnin</span>
+          <span class="brand-subtitle">Abas Verticais</span>
+        </div>
+      </div>
+
+      <button class="new-tab-btn" id="btn-new-tab" title="Abrir nova aba">
+        <span style="font-size: 16px; font-weight: bold;">+</span>
+        <span>Nova Aba</span>
+      </button>
+
+      <!-- Vertical Tabs Container -->
+      <div class="tabs-list"></div>
+
+      <div class="sidebar-footer">
+        <button class="sidebar-btn" id="btn-toggle-sidebar" title="Expandir/Recolher Barra Lateral">
+          <span>☰</span>
+        </button>
+        <button class="sidebar-btn" id="btn-bookmarks" title="Favoritos Starsnin">
+          <span>★</span>
+        </button>
+        <button class="sidebar-btn" id="btn-inspector" title="Inspetor DOM da Engine">
+          <span>&lt;/&gt;</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN VIEW -->
+    <main id="main-view">
+      <!-- TOP TOOLBAR / ADDRESS BAR -->
+      <header id="toolbar">
+        <button class="nav-btn" id="btn-back" title="Voltar">&lt;</button>
+        <button class="nav-btn" id="btn-forward" title="Avançar">&gt;</button>
+        <button class="nav-btn" id="btn-refresh" title="Recarregar">↻</button>
+        <button class="nav-btn" id="btn-home" title="Início Starsnin">🏠</button>
+
+        <div class="address-bar-wrapper">
+          <span class="lock-icon" id="security-indicator">🔒</span>
+          <input type="text" id="url-input" value="https://starsnin.vercel.app" placeholder="Digite uma URL ou termo de busca..." autocomplete="off" />
+          <button class="go-btn" id="btn-go">Ir</button>
+        </div>
+
+        <button class="nav-btn" id="btn-open-devtools" title="Console da Engine">⚡</button>
+      </header>
+
+      <!-- ENGINE TELEMETRY STRIP -->
+      <div id="telemetry-strip">
+        <div class="guarantee-badge">
+          <div class="pulse-dot"></div>
+          <span>Engine Independente (Zero Chromium / Zero WebView)</span>
+        </div>
+        <div id="telemetry-info">Carregando engine...</div>
+      </div>
+
+      <!-- VIEWPORT RENDERED BY INDEPENDENT ENGINE -->
+      <div id="viewport-container"></div>
+
+      <!-- DOM INSPECTOR MODAL -->
+      <div id="inspector-modal">
+        <div class="inspector-header">
+          <div class="inspector-tabs">
+            <button class="inspector-tab-btn active" data-tab="dom">Árvore DOM</button>
+            <button class="inspector-tab-btn" data-tab="source">Código Fonte</button>
+            <button class="inspector-tab-btn" data-tab="about">Sobre a Engine</button>
+          </div>
+          <button class="nav-btn" id="btn-close-inspector" style="font-size: 14px;">✕</button>
+        </div>
+        <div class="inspector-content" id="inspector-body"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="starsnin-engine.js"></script>
+  <script src="tab-manager.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const viewport = document.getElementById('viewport-container');
+      const engine = new StarsninEngine(viewport);
+      const sidebar = document.getElementById('sidebar');
+      const urlInput = document.getElementById('url-input');
+
+      // Initialize Tab Manager
+      const tabManager = new TabManager(sidebar, (activeTab) => {
+        urlInput.value = activeTab.url;
+        loadCurrentPage(activeTab.url);
+      });
+
+      // Navigate callback from engine elements
+      engine.setNavigateCallback((url) => {
+        navigateTo(url);
+      });
+
+      function navigateTo(targetUrl) {
+        let finalUrl = targetUrl.trim();
+        if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+          if (finalUrl.includes('.') && !finalUrl.includes(' ')) {
+            finalUrl = 'https://' + finalUrl;
+          } else {
+            finalUrl = 'https://starsnin.vercel.app?q=' + encodeURIComponent(finalUrl);
+          }
+        }
+        urlInput.value = finalUrl;
+        const activeTab = tabManager.getActiveTab();
+        if (activeTab) {
+          tabManager.updateActiveTabUrl(finalUrl, getTitleFromUrl(finalUrl));
+        }
+        loadCurrentPage(finalUrl);
+      }
+
+      function getTitleFromUrl(url) {
+        if (url.includes('starsnin.vercel.app')) return 'Starsnin - Ecossistema';
+        try {
+          return new URL(url).hostname;
+        } catch(e) {
+          return url;
+        }
+      }
+
+      async function loadCurrentPage(url) {
+        // Tenta buscar via proxy local se disponível, ou renderiza o ecossistema oficial diretamente
+        try {
+          let html = '';
+          // Try local proxy if running server.js
+          const proxyUrl = `/api/fetch?url=${encodeURIComponent(url)}`;
+          const response = await fetch(proxyUrl).catch(() => null);
+          if (response && response.ok) {
+            html = await response.text();
+          } else {
+            // Default official ecosystem HTML
+            html = getDefaultStarsninHtml(url);
+          }
+          engine.render(html, url);
+        } catch (err) {
+          engine.render(getDefaultStarsninHtml(url), url);
+        }
+      }
+
+      function getDefaultStarsninHtml(url) {
+        return `
+          <!DOCTYPE html>
+          <html>
+          <head><title>Starsnin - Motor de Busca</title></head>
+          <body>
+            <h2>Ecossistema Starsnin Integrado</h2>
+            <p>Destino principal: <a href="https://starsnin.vercel.app">https://starsnin.vercel.app</a></p>
+            <p>O navegador web independente Starsnin opera sem Chromium ou WebViews nativas do sistema, empregando lexer e construtor de nós DOM próprios.</p>
+          </body>
+          </html>
+        `;
+      }
+
+      // Initial tab
+      tabManager.createTab('Starsnin', 'https://starsnin.vercel.app');
+
+      // Toolbar event listeners
+      document.getElementById('btn-go').onclick = () => navigateTo(urlInput.value);
+      urlInput.onkeydown = (e) => { if (e.key === 'Enter') navigateTo(urlInput.value); };
+
+      document.getElementById('btn-new-tab').onclick = () => {
+        tabManager.createTab('Starsnin', 'https://starsnin.vercel.app');
+      };
+
+      document.getElementById('btn-refresh').onclick = () => {
+        const tab = tabManager.getActiveTab();
+        if (tab) loadCurrentPage(tab.url);
+      };
+
+      document.getElementById('btn-home').onclick = () => {
+        navigateTo('https://starsnin.vercel.app');
+      };
+
+      document.getElementById('sidebar-logo-header').onclick = () => {
+        navigateTo('https://starsnin.vercel.app');
+      };
+
+      document.getElementById('btn-toggle-sidebar').onclick = () => {
+        sidebar.classList.toggle('collapsed');
+      };
+
+      // Inspector Modal Controls
+      const inspectorModal = document.getElementById('inspector-modal');
+      const inspectorBody = document.getElementById('inspector-body');
+
+      function toggleInspector() {
+        inspectorModal.classList.toggle('open');
+        if (inspectorModal.classList.contains('open')) {
+          renderInspectorView('dom');
+        }
+      }
+
+      document.getElementById('btn-inspector').onclick = toggleInspector;
+      document.getElementById('btn-open-devtools').onclick = toggleInspector;
+      document.getElementById('btn-close-inspector').onclick = () => inspectorModal.classList.remove('open');
+
+      function renderInspectorView(type) {
+        if (type === 'dom') {
+          inspectorBody.textContent = JSON.stringify(engine.currentDom, null, 2);
+        } else if (type === 'source') {
+          inspectorBody.textContent = engine.rawHtml;
+        } else if (type === 'about') {
+          inspectorBody.textContent = `
+Starsnin Engine v1.0
+========================================
+- Renderização: Própria / Independente
+- Restrição Técnica: 100% Compatível (Sem Chromium, Sem WebViews nativas, Sem Electron/CEF)
+- Layout de Abas: Lateral Vertical
+- Logo Oficial: https://starsnin.vercel.app/starsninlogo.png
+- Página Inicial: https://starsnin.vercel.app
+          `.trim();
+        }
+      }
+
+      document.querySelectorAll('.inspector-tab-btn').forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll('.inspector-tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderInspectorView(btn.getAttribute('data-tab'));
+        };
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Starsnin",
+  "description": "Navegador web independente com motor de renderização próprio e abas verticais laterais, exibindo a logo oficial e o ecossistema Starsnin.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
