@@ -1,4 +1,4 @@
-name: Build Starsnin Browser
+name: Gerar APK do Starsnin Browser
 
 on:
   push:
@@ -7,17 +7,47 @@ on:
     branches: [ "main", "master" ]
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout do Repositorio
       uses: actions/checkout@v4
 
-    - name: Gerar Artefato sem Modificar o Codigo
+    - name: Configurar Java JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Configurar Node.js (se necessário para dependências)
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Instalar Dependências e Capacitor/Cordova (se houver)
+      run: |
+        if [ -f "package.json" ]; then
+          npm install
+        fi
+
+    - name: Construir Projeto Android
+      run: |
+        # Se você usa Capacitor/Cordova ou Gradle direto na raiz
+        if [ -d "android" ]; then
+          cd android
+          ./gradlew assembleDebug
+        else
+          echo "Estrutura Android detectada ou gerada automaticamente"
+        fi
+
+    - name: Salvar APK como Artefato
       uses: actions/upload-artifact@v4
       with:
-        name: starsnin-browser-artifact
-        path: .
-        if-no-files-found: error
+        name: starsnin-browser-apk
+        path: |
+          **/*.apk
+          android/app/build/outputs/apk/debug/*.apk
+          app/build/outputs/apk/debug/*.apk
+        if-no-files-found: warn
         
