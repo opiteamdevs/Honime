@@ -10,34 +10,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-
     steps:
     - name: Clonar Repositório
       uses: actions/checkout@v4
 
-    - name: Configurar Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-
-    - name: Instalar Dependências
-      run: npm install
-
-    - name: Executar Testes e Build
+    - name: Verificar Arquivos e Estrutura
       run: |
-        npm run build --if-present
-        echo "Build do navegador Starsnin concluído com sucesso!"
+        echo "Verificando estrutura do navegador e o link do Starsnin..."
+        ls -la
 
-    - name: Compactar Artefatos
+    - name: Compactar Artefatos do Projeto
       uses: actions/upload-artifact@v4
       with:
-        name: starsnin-browser-build
+        name: starsnin-browser-files
         path: |
-          dist/
+          *.html
+          *.css
           *.js
-          package.json
+          assets/
+          *.png
           
