@@ -27,8 +27,11 @@ jobs:
     - name: Configurar Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Instalar e Configurar Capacitor
+    - name: Limpar e Configurar Capacitor do Zero
       run: |
+        # Remove pasta android antiga se existir para evitar conflito de plugins
+        rm -rf android
+        
         npm init -y
         npm install @capacitor/core @capacitor/cli @capacitor/android
         npx cap init StarsninBrowser com.starsnin.browser --web-dir .
