@@ -1,53 +1,48 @@
-name: Gerar APK do Starsnin Browser
+name: Compilar APK Starsnin
 
 on:
   push:
     branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
-  build-apk:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout do Repositorio
+    - name: Baixar o Repositorio
       uses: actions/checkout@v4
 
-    - name: Configurar Java JDK
+    - name: Configurar Java JDK 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Configurar Node.js (se necessário para dependências)
-      uses: actions/setup-node@v4
-      with:
-        node-version: 18
+    - name: Configurar Android SDK
+      uses: android-actions/setup-android@v3
 
-    - name: Instalar Dependências e Capacitor/Cordova (se houver)
+    - name: Dar Permissao ao Gradle e Compilar
       run: |
-        if [ -f "package.json" ]; then
-          npm install
-        fi
-
-    - name: Construir Projeto Android
-      run: |
-        # Se você usa Capacitor/Cordova ou Gradle direto na raiz
-        if [ -d "android" ]; then
+        if [ -f "gradlew" ]; then
+          chmod +x gradlew
+          ./gradlew assembleDebug
+        elif [ -d "android" ]; then
           cd android
+          chmod +x gradlew
           ./gradlew assembleDebug
         else
-          echo "Estrutura Android detectada ou gerada automaticamente"
+          echo "Nenhum wrapper do Gradle encontrado na raiz ou na pasta android."
+          exit 1
         fi
 
-    - name: Salvar APK como Artefato
+    - name: Salvar o APK Gerado
       uses: actions/upload-artifact@v4
       with:
-        name: starsnin-browser-apk
+        name: starsnin-apk-final
         path: |
-          **/*.apk
-          android/app/build/outputs/apk/debug/*.apk
           app/build/outputs/apk/debug/*.apk
-        if-no-files-found: warn
+          android/app/build/outputs/apk/debug/*.apk
+          **/*.apk
+        if-no-files-found: error
         
